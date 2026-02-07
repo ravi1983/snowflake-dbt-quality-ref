@@ -15,7 +15,3 @@ profiles.yml
 .user.yml
 
 real-setup.sql
-
-
-snowflake-dbt-quality-ref
-Snowflake SCD2 Dimensions & Fact models orchestrated via Airflow (GCP Composer) with dbt-unit-testing and quality guardrails.
