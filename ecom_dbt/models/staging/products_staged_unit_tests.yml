@@ -1,0 +1,36 @@
+unit_tests:
+  - name: test_scd2_initial_load
+    model: products_staged
+    description: "Verify that multiple rows for the same ID in one batch correctly assign VALID_TO and IS_CURRENT."
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('ecom', 'products')
+        rows:
+          - {PRODUCT_ID: 1, PRODUCT_NAME: 'Phone', CATEGORY: 'tech', PRICE: 500, LOADED_AT: '2026-01-01 10:00:00'}
+          - {PRODUCT_ID: 1, PRODUCT_NAME: 'Phone', CATEGORY: 'tech', PRICE: 450, LOADED_AT: '2026-01-01 11:00:00'}
+          - {PRODUCT_ID: 2, PRODUCT_NAME: 'Laptop', CATEGORY: 'tech', PRICE: 1000, LOADED_AT: '2026-01-01 10:00:00'}
+    expect:
+      rows:
+        - {PRODUCT_ID: 1, PRICE: 500, VALID_FROM: '2026-01-01 10:00:00', VALID_TO: '2026-01-01 11:00:00', IS_CURRENT: false}
+        - {PRODUCT_ID: 1, PRICE: 450, VALID_FROM: '2026-01-01 11:00:00', VALID_TO: null, IS_CURRENT: true}
+        - {PRODUCT_ID: 2, PRICE: 1000, VALID_FROM: '2026-01-01 10:00:00', VALID_TO: null, IS_CURRENT: true}
+  - name: test_scd2_incremental_update_stitch
+    model: products_staged
+    description: "Verify that an incremental run correctly closes the previous 'current' record and opens a new one."
+    overrides:
+      macros:
+        is_incremental: true
+    given:
+      - input: this # Mock existing entry
+        rows:
+          - { PRODUCT_ID: 101, PRODUCT_NAME: 'Gadget', PRODUCT_CATEGORY: 'ELECTRONICS', PRODUCT_BRAND: 'ACME', PRICE: 100, RATING: 4, LOADED_AT: '2026-01-01 10:00:00', VALID_FROM: '2026-01-01 10:00:00', VALID_TO: null, IS_CURRENT: true }
+      - input: source('ecom', 'products') # new entries
+        rows:
+          - { PRODUCT_ID: 101, PRODUCT_NAME: 'Gadget', CATEGORY: 'electronics', BRAND: 'ACME', PRICE: 120, LOADED_AT: '2026-01-01 15:00:00' }
+
+    expect:
+      rows:
+        - { PRODUCT_ID: 101, PRICE: 100, VALID_FROM: '2026-01-01 10:00:00', VALID_TO: '2026-01-01 15:00:00', IS_CURRENT: false }
+        - { PRODUCT_ID: 101, PRICE: 120, VALID_FROM: '2026-01-01 15:00:00', VALID_TO: null, IS_CURRENT: true }

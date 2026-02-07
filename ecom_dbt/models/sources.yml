@@ -1,0 +1,6 @@
+sources:
+  - name: ecom
+    schema: raw
+    tables:
+      - name: products
+        identifier: products

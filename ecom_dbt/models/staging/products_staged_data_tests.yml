@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: products_staged
+    description: >
+      This is an **Incremental SCD Type 2** table. It tracks the full history of product changes 
+      from the raw source. Unlike standard dbt snapshots, this model captures every single state 
+      change within a batch (intra-day changes) by stitching new appends with the existing current record.
+
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          description: "Ensures no product has more than one active record."
+          arguments:
+            column_list: ["PRODUCT_ID"]
+            row_condition: "IS_CURRENT = TRUE"
+
+      - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+          description: "Ensures chronological integrity (time moves forward)."
+          arguments:
+            column_A: VALID_TO
+            column_B: VALID_FROM
+            or_equal: False
+            row_condition: "VALID_TO IS NOT NULL"
+
+    columns:
+      - name: PRODUCT_ID
+        description: "The primary natural key for the product."
+        tests:
+          - not_null
+
+      - name: PRODUCT_CATEGORY
+        description: "Product category"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: [ 'GROCERIES', 'TOYS', 'SPORTS', 'BEAUTY', 'HOME & KITCHEN', 'BOOKS', 'CLOTHING',
+                             'ELECTRONICS', 'PET SUPPLIES', 'AUTOMOTIVE' ]
+                quote_values: true
+              config:
+                severity: warn
+
+      - name: PRICE
+        description: "The unit price of the product at the time of the record."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                strictly: true
+                row_condition: "PRODUCT_ID is not null"
+
+      - name: RATING
+        description: "Customer rating of the product (1-5 stars)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              arguments:
+                column_type: number
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 5
+
+      - name: VALID_FROM
+        description: "The timestamp when this specific version of the product became active."
+        tests:
+          - not_null
+
+      - name: VALID_TO
+        description: "The timestamp when this specific version was superseded. NULL if the record is current."
+
+      - name: IS_CURRENT
+        description: "Boolean flag: TRUE if this is the latest version, FALSE if it is historical."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]

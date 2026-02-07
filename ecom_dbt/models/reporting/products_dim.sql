@@ -1,0 +1,16 @@
+{{
+    config(
+        schema = 'reporting',
+        materialized = 'view'
+    )
+}}
+
+WITH PRODUCTS_STAGES AS (
+    SELECT * FROM {{ ref('products_staged') }}
+)
+SELECT
+    MD5(CONCAT(CAST(PRODUCT_ID AS VARCHAR), CAST(VALID_FROM AS VARCHAR))) AS PRODUCT_HASH_ID,
+    PRODUCT_ID, PRODUCT_NAME, PRODUCT_CATEGORY,
+    PRODUCT_BRAND, PRICE, RATING,
+    VALID_FROM, VALID_TO
+FROM PRODUCTS_STAGES
