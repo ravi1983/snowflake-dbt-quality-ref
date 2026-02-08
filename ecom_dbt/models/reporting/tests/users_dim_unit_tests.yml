@@ -1,0 +1,23 @@
+unit_tests:
+  - name: test_user_tiering_logic
+    model: users_dim
+    given:
+      - input: ref('users_staged')
+        rows:
+          - {user_id: 1, valid_to: null}
+          - {user_id: 2, valid_to: null}
+          - {user_id: 3, valid_to: null}
+          - {user_id: 4, valid_to: null}
+          - {user_id: 5, valid_to: '2025-01-01'}
+      - input: ref('orders_staged')
+        rows:
+          - {user_id: 1, total_amount: 500}
+          - {user_id: 2, total_amount: 200}
+          - {user_id: 3, total_amount: 50}
+          - {user_id: 4, total_amount: 0}
+    expect:
+      rows:
+        - {user_id: 1, tier: 'GOLD'}
+        - {user_id: 2, tier: 'SILVER'}
+        - {user_id: 3, tier: 'BRONZE'}
+        - {user_id: 4, tier: 'NEW MEMBER'}

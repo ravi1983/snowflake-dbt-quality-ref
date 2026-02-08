@@ -1,0 +1,46 @@
+models:
+  - name: users_dim
+    description: "Categorizes users into loyalty tiers based on their lifetime spend."
+    columns:
+      - name: USER_ID
+        description: "Unique identifier for the user (current SCD2 record)."
+        tests:
+          - not_null
+          - unique
+
+      - name: TIER
+        description: "Loyalty tier based on TOTAL_AMOUNT: GOLD (>=500), SILVER (>=200), BRONZE (>0), or NEW MEMBER."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: ['GOLD', 'SILVER', 'BRONZE', 'NEW MEMBER']
+
+      - name: TOTAL_AMOUNT
+        description: "Aggregated lifetime spend from orders."
+        tests:
+          - dbt_expectations.expect_column_min_to_be_between:
+              arguments:
+                min_value: 0
+          - expect_column_value_by_tier:
+              arguments:
+                tier_column: TIER
+                tier_value: GOLD
+                min_val: 500
+          - expect_column_value_by_tier:
+              arguments:
+                tier_column: TIER
+                tier_value: SILVER
+                min_val: 200
+                max_val: 499.99
+          - expect_column_value_by_tier:
+              arguments:
+                tier_column: TIER
+                tier_value: BRONZE
+                min_val: 1
+                max_val: 199.99
+          - expect_column_value_by_tier:
+              arguments:
+                tier_column: TIER
+                tier_value: NEW MEMBER
+                min_val: 0
+                max_val: 0

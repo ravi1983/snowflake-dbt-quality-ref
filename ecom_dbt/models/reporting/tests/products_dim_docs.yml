@@ -1,0 +1,39 @@
+models:
+  - name: products_dim
+    description: >
+      Type 2 Slowly Changing Dimension (SCD) table for products. 
+      Captures historical changes for product attributes such as price, brand, and rating.
+    columns:
+      - name: PRODUCT_HASH_ID
+        description: "Primary key for the record; unique hash of the product ID and its effective start date."
+        tests:
+          - unique
+          - not_null
+
+      - name: PRODUCT_ID
+        description: "The natural key for the product."
+        tests:
+          - not_null
+
+      - name: PRODUCT_NAME
+        description: "Full name of the product."
+
+      - name: PRODUCT_CATEGORY
+        description: "The category the product belongs to."
+
+      - name: PRODUCT_BRAND
+        description: "The brand or manufacturer name."
+
+      - name: PRICE
+        description: "The retail price of the product at this point in time."
+
+      - name: RATING
+        description: "The customer satisfaction rating for this version of the product."
+
+      - name: VALID_FROM
+        description: "The timestamp marking the start of this record's validity."
+        tests:
+          - not_null
+
+      - name: VALID_TO
+        description: "The timestamp marking when this record was superseded. NULL indicates the current version."

@@ -1,0 +1,44 @@
+models:
+  - name: order_items_fact
+    description: >
+      A flattened view of order line items joined with their parent order details. 
+      This model allows for analyzing item-level performance by date and order status.
+    columns:
+      - name: ORDER_ITEM_ID
+        description: "The unique identifier for the specific line item."
+        tests:
+          - unique
+          - not_null
+
+      - name: ORDER_ID
+        description: "The unique identifier for the parent order."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('orders_staged')
+                field: ORDER_ID
+
+      - name: ORDER_DATE
+        description: "The date and time when the parent order was placed."
+
+      - name: ORDER_STATUS
+        description: "The current lifecycle stage of the order (e.g., COMPLETED, SHIPPED, CANCELLED)."
+
+      - name: PRODUCT_ID
+        description: "Foreign key for the product associated with this line item."
+
+      - name: USER_ID
+        description: "Foreign key for the customer who placed the order."
+
+      - name: QUANTITY
+        description: "The number of units purchased for this specific item."
+
+      - name: ITEM_PRICE
+        description: "The unit price of the product at the time of purchase."
+
+      - name: ITEM_TOTAL
+        description: "The total value for this line item (QUANTITY * ITEM_PRICE)."
+
+      - name: LOADED_AT
+        description: "The timestamp when this record was first loaded into the warehouse."
