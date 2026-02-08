@@ -33,4 +33,5 @@ models:
   ecom_dbt:
     +materialized: view
     staging:
+      +schema: staging
       +materialized: incremental

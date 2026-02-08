@@ -4,3 +4,9 @@ sources:
     tables:
       - name: products
         identifier: products
+      - name: users
+        identifier: users
+      - name: orders
+        identifier: orders
+      - name: order_items
+        identifier: order_items

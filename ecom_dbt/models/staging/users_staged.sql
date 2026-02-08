@@ -1,34 +1,35 @@
 {{
     config(
-        unique_key = ['product_id', 'valid_from'],
+        unique_key=['user_id', 'valid_from'],
         incremental_strategy = 'merge'
     )
 }}
--- Get the data from raw table that has changed since last run.
--- We'll be using ALL versions of the changed data
+-- Get ONLY the latest version of modified users since last run
 WITH NEW_DATA AS (
     SELECT
-        PRODUCT_ID,
-        PRODUCT_NAME,
-        UPPER(CATEGORY) AS PRODUCT_CATEGORY,
-        BRAND AS PRODUCT_BRAND,
-        PRICE,
-        FLOOR(RATING) AS RATING,
+        USER_ID,
+        SUBSTRING(NAME, 1, CHARINDEX(' ', NAME) - 1) AS FIRST_NAME,
+        UPPER(SUBSTRING(NAME, CHARINDEX(' ', NAME) + 1, LEN(NAME))) AS LAST_NAME,
+        EMAIL,
+        GENDER,
+        CITY,
+        SIGNUP_DATE,
         LOADED_AT
-    FROM {{ source('ecom', 'products') }}
+    FROM {{ source('ecom', 'users') }}
     {% if is_incremental() %}
     WHERE LOADED_AT > (SELECT MAX(LOADED_AT) FROM {{ this }})
     {% endif %}
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY USER_ID ORDER BY LOADED_AT DESC) = 1
 ),
 {% if is_incremental() %}
 -- For incremental load, merge the data with existing data with new data
 EXISTING_CURRENT AS (
     SELECT
-        PRODUCT_ID, PRODUCT_NAME, PRODUCT_CATEGORY,
-        PRODUCT_BRAND, PRICE, RATING, LOADED_AT
+        USER_ID, FIRST_NAME, LAST_NAME,
+        EMAIL, GENDER, CITY, SIGNUP_DATE, LOADED_AT
     FROM {{ this }}
     WHERE IS_CURRENT = TRUE
-    AND PRODUCT_ID IN (SELECT PRODUCT_ID FROM NEW_DATA)
+    AND USER_ID IN (SELECT USER_ID FROM NEW_DATA)
 ),
 UNION_DATA AS (
     SELECT * FROM EXISTING_CURRENT
@@ -43,7 +44,7 @@ DATA_WITH_VALID_FROM AS (
     SELECT
         *,
         LOADED_AT AS VALID_FROM,
-        LEAD(LOADED_AT) OVER (PARTITION BY PRODUCT_ID ORDER BY LOADED_AT) AS VALID_TO
+        LEAD(LOADED_AT) OVER (PARTITION BY USER_ID ORDER BY LOADED_AT) AS VALID_TO
     FROM UNION_DATA
 ),
 SCD2_FINAL AS (
