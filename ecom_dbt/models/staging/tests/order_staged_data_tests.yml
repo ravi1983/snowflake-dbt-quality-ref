@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: orders_staged
+    description: "Incremental model for orders with status normalization."
+
+
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          arguments:
+            column_list: [ "ORDER_ID" ]
+
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+
+      - name: loaded_at
+        tests:
+          - not_null
+
+      - name: order_status
+        tests:
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: ['COMPLETED', 'PROCESSING', 'CANCELLED', 'RETURNED', 'SHIPPED']
+          - dbt_expectations.expect_column_values_to_match_regex:
+              arguments:
+                regex: "^[A-Z_]+$"
+
+      - name: total_amount
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                row_condition: "order_status != 'CANCELLED'" # Optional logic filter

@@ -1,0 +1,34 @@
+unit_tests:
+  - name: test_users_fresh_run
+    model: users_staged
+    description: "Verify name splitting and initial SCD2 flag setup on a full refresh."
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('ecom', 'users')
+        rows:
+          - {USER_ID: 1, NAME: 'John Doe', EMAIL: 'john@example.com', GENDER: 'Male', CITY: 'New York', SIGNUP_DATE: '2025-01-01', LOADED_AT: '2026-01-01 10:00:00'}
+          - {USER_ID: 2, NAME: 'Jane Smith', EMAIL: 'jane@example.com', GENDER: 'Female', CITY: 'London', SIGNUP_DATE: '2025-02-01', LOADED_AT: '2026-01-01 10:00:00'}
+    expect:
+      rows:
+        - {USER_ID: 1, FIRST_NAME: 'John', LAST_NAME: 'DOE', GENDER: 'M', VALID_FROM: '2026-01-01 10:00:00', VALID_TO: null, IS_CURRENT: true}
+        - {USER_ID: 2, FIRST_NAME: 'Jane', LAST_NAME: 'SMITH', GENDER: 'F',  VALID_FROM: '2026-01-01 10:00:00', VALID_TO: null, IS_CURRENT: true}
+
+  - name: test_users_incremental_stitch
+    model: users_staged
+    description: "Verify that an incremental run closes the old record and opens a new one for a changed user."
+    overrides:
+      macros:
+        is_incremental: true
+    given:
+      - input: this
+        rows:
+          - {USER_ID: 1, FIRST_NAME: 'John', LAST_NAME: 'DOE', EMAIL: 'john@example.com', GENDER: 'M', CITY: 'New York', SIGNUP_DATE: '2025-01-01', LOADED_AT: '2026-01-01 10:00:00', VALID_FROM: '2026-01-01 10:00:00', VALID_TO: null, IS_CURRENT: true}
+      - input: source('ecom', 'users')
+        rows:
+          - {USER_ID: 1, NAME: 'John Doe', EMAIL: 'john@example.com', GENDER: 'Other', CITY: 'Miami', SIGNUP_DATE: '2025-01-01', LOADED_AT: '2026-01-02 12:00:00'}
+    expect:
+      rows:
+        - {USER_ID: 1, CITY: 'New York', VALID_FROM: '2026-01-01 10:00:00', GENDER: 'M',  VALID_TO: '2026-01-02 12:00:00', IS_CURRENT: false}
+        - {USER_ID: 1, CITY: 'Miami', VALID_FROM: '2026-01-02 12:00:00', GENDER: 'U',  VALID_TO: null, IS_CURRENT: true}

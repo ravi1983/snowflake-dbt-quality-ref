@@ -1,0 +1,54 @@
+models:
+  - name: users_staged
+    description: >
+      Incremental SCD Type 2 table for User profiles. 
+      Splits raw names into first/last components and tracks historical changes 
+      to attributes like City and Email.
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          arguments:
+            column_list: ["USER_ID"]
+            row_condition: "IS_CURRENT = TRUE"
+          config:
+            severity: error
+
+    columns:
+      - name: USER_ID
+        description: "Unique identifier for the user (Natural Key)."
+        tests:
+          - not_null
+
+      - name: FIRST_NAME
+        description: "Extracted first name (Case sensitive)."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              arguments:
+                min_value: 1
+
+      - name: LAST_NAME
+        description: "Extracted last name (Forced to UPPERCASE)."
+        tests:
+          - not_null
+
+      - name: GENDER
+        description: "User gender for demographic segmentation."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: ['M', 'F', 'U']
+
+      - name: VALID_FROM
+        description: "Timestamp when this profile version became active."
+        tests:
+          - not_null
+
+      - name: VALID_TO
+        description: "Timestamp when this version was superseded. NULL indicates the active record."
+
+      - name: IS_CURRENT
+        description: "Flag indicating the most recent version of the user record."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]

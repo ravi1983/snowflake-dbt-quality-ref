@@ -1,6 +1,6 @@
 {{
     config(
-        unique_key=['order_id', 'loaded_at'],
+        unique_key=['order_id'],
         incremental_strategy = 'merge'
     )
 }}

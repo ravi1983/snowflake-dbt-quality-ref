@@ -11,7 +11,11 @@ WITH NEW_DATA AS (
         SUBSTRING(NAME, 1, CHARINDEX(' ', NAME) - 1) AS FIRST_NAME,
         UPPER(SUBSTRING(NAME, CHARINDEX(' ', NAME) + 1, LEN(NAME))) AS LAST_NAME,
         EMAIL,
-        GENDER,
+        CASE
+            WHEN GENDER = 'Male' THEN 'M'
+            WHEN GENDER = 'Female' THEN 'F'
+            ELSE 'U'
+        END AS GENDER,
         CITY,
         SIGNUP_DATE,
         LOADED_AT

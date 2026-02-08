@@ -1,0 +1,32 @@
+unit_tests:
+  - name: test_order_status_is_uppercased
+    model: orders_staged # Ensure this matches the filename: orders_staged.sql
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('ecom', 'orders')
+        rows:
+          - {ORDER_ID: 1, ORDER_STATUS: 'completed', LOADED_AT: '2026-02-01 10:00:00'}
+          - {ORDER_ID: 2, ORDER_STATUS: 'Pending', LOADED_AT: '2026-02-01 10:00:00'}
+    expect:
+      rows:
+        - {ORDER_ID: 1, ORDER_STATUS: 'COMPLETED'}
+        - {ORDER_ID: 2, ORDER_STATUS: 'PENDING'}
+
+  - name: test_incremental_filter_logic
+    model: orders_staged
+    overrides:
+      macros:
+        is_incremental: true
+    given:
+      - input: this
+        rows:
+          - {ORDER_ID: 1, LOADED_AT: '2026-02-01 10:00:00'}
+      - input: source('ecom', 'orders')
+        rows:
+          - {ORDER_ID: 1, ORDER_STATUS: 'completed', LOADED_AT: '2026-02-01 10:00:00'}
+          - {ORDER_ID: 2, ORDER_STATUS: 'shipped', LOADED_AT: '2026-02-01 11:00:00'}
+    expect:
+      rows:
+        - {ORDER_ID: 2, ORDER_STATUS: 'SHIPPED', LOADED_AT: '2026-02-01 11:00:00'}

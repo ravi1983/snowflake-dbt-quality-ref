@@ -35,8 +35,6 @@ models:
                 value_set: [ 'GROCERIES', 'TOYS', 'SPORTS', 'BEAUTY', 'HOME & KITCHEN', 'BOOKS', 'CLOTHING',
                              'ELECTRONICS', 'PET SUPPLIES', 'AUTOMOTIVE' ]
                 quote_values: true
-              config:
-                severity: warn
 
       - name: PRICE
         description: "The unit price of the product at the time of the record."
