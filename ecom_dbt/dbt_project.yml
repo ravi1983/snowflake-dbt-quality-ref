@@ -35,3 +35,6 @@ models:
     staging:
       +schema: staging
       +materialized: incremental
+    reporting:
+      +schema: reporting
+      +materialized: incremental

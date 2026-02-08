@@ -1,6 +1,5 @@
 {{
     config(
-        schema = 'reporting',
         materialized = 'view'
     )
 }}
