@@ -1,7 +1,8 @@
 {{
     config(
         unique_key=['order_item_id', 'order_id'],
-        incremental_strategy = 'merge'
+        incremental_strategy = 'merge',
+        tags='orders'
     )
 }}
 WITH ORDER_ITEMS AS (

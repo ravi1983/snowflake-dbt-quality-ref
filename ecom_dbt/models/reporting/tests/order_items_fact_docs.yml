@@ -3,11 +3,16 @@ models:
     description: >
       A flattened view of order line items joined with their parent order details. 
       This model allows for analyzing item-level performance by date and order status.
+
+    tests:
+      - dbt_expectations.expect_compound_columns_to_be_unique:
+          arguments:
+            column_list: [ "ORDER_ID", "ORDER_ITEM_ID" ]
+
     columns:
       - name: ORDER_ITEM_ID
-        description: "The unique identifier for the specific line item."
+        description: "The unique identifier for the specific line item in an order."
         tests:
-          - unique
           - not_null
 
       - name: ORDER_ID

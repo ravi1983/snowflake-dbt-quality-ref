@@ -1,7 +1,8 @@
 {{
     config(
         unique_key=['user_id', 'valid_from'],
-        incremental_strategy = 'merge'
+        incremental_strategy = 'merge',
+        tags='users'
     )
 }}
 -- Get ONLY the latest version of modified users since last run

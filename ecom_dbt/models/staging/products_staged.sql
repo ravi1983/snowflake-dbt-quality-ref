@@ -1,7 +1,8 @@
 {{
     config(
         unique_key = ['product_id', 'valid_from'],
-        incremental_strategy = 'merge'
+        incremental_strategy = 'merge',
+        tags='products'
     )
 }}
 -- Get the data from raw table that has changed since last run.
