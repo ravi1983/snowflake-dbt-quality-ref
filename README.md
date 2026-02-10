@@ -9,7 +9,7 @@ The architecture focuses on high data quality, automated documentation, and nati
 * **Snowflake:** Functions as the centralized Cloud Data Warehouse.
 * **dbt (data build tool):** Handles the transformation layer, including the implementation of **SCD Type 2** logic for dimensions and the creation of final Fact/Dimension tables.
 * **Airflow (Astronomer):** Orchestrates the entire workflow. It utilizes the **astronomer-cosmos** SDK to render dbt models as native Airflow tasks.
-* **Data Source:** Synthetic dataset sourced from Kaggle but can also be found under data directory.
+* **Data Source:** Synthetic dataset sourced from Kaggle, but it can also be found under the data directory.
 
 ### Key Features
 * **Custom SCD2 Logic:** Instead of using standard dbt snapshots, this project implements custom SCD2 logic to transform and merge data directly, avoiding unnecessary intermediate tables.
@@ -41,7 +41,7 @@ Follow these steps to set up and run the reference project:
     Generate a `profiles.yml` file for the dbt project to connect to your Snowflake instance.
 
 3.  **Cloud Infrastructure:**
-    Refer to `gcp-permissions.sh` to configure the necessary GCP Pub/Sub components and Cloud Storage buckets required for the landing zone.
+    Refer to `gcp-permissions.sh` to configure the necessary GCP Pub/Sub components and Cloud Storage buckets required for the raw data.
 
 4.  **Local Airflow Development:**
     Install the [Astro CLI](https://www.astronomer.io/snowflake/). Once installed, navigate to the project root and run:
