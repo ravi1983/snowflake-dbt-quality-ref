@@ -30,7 +30,7 @@ gcloud storage buckets notifications create gs://synthetic-ecom-data \
     --payload-format=json \
     --object-prefix=order_items/
 
-# Service account setup:
+# Service account setup
 gcloud iam service-accounts create astro-pubsub-reader \
     --description="Service account for Astro Airflow to pull GCS events" \
     --display-name="Astro PubSub Reader"
