@@ -21,7 +21,7 @@ def _parse_files(messages: list, table) -> str:
     return file_names
 
 
-def poll_for_messages(subscription=os.environ.get("GCS_PRODUCT_SUBSCRIPTION")):
+def poll_for_messages(subscription):
     return PubSubPullOperator(
         task_id="poll_for_messages",
         gcp_conn_id="google_cloud_default",
