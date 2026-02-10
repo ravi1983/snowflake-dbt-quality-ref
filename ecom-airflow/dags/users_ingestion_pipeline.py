@@ -7,7 +7,8 @@ import tasks.ecom_tasks as et
     dag_id="users_ingestion_pipeline",
     start_date=datetime(2025, 1, 1),
     max_active_runs=1,
-    catchup=False
+    catchup=False,
+    schedule=None
 )
 def users_ingestion_pipeline():
     et.copy_users_to_snowflake() >> et.dbt_transform(['tag:users'])

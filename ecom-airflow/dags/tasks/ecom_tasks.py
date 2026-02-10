@@ -4,21 +4,45 @@ from typing import Any
 
 from airflow.sdk import task, Variable
 
+from airflow.operators.python import ShortCircuitOperator
 from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
+from airflow.providers.google.cloud.operators.pubsub import PubSubPullOperator
 from cosmos import DbtTaskGroup, ProjectConfig, ProfileConfig, ExecutionConfig, RenderConfig
 
 
-def _parse_files(context: dict[str, Any], table_name) -> tuple[SnowflakeHook, str]:
-    conf = context['dag_run'].conf
-    files = ",".join([f"'{f}'" for f in conf.get('files')])
-    logging.info(f'Copying {files} to {table_name} table')
+def _parse_files(messages: list, table) -> str:
+    files = [
+        f"'{m['message']['attributes']['objectId']}'"
+        for m in messages if m.get('message', {}).get('attributes', {}).get('objectId')
+    ]
+    file_names = ",".join(files) if files else ""
+    logging.info(f'Files to be loaded for {table}: {file_names}')
 
-    return files
+    return file_names
+
+
+def poll_for_messages(subscription=os.environ.get("GCS_PRODUCT_SUBSCRIPTION")):
+    return PubSubPullOperator(
+        task_id="poll_for_messages",
+        gcp_conn_id="google_cloud_default",
+        project_id=os.environ.get("GCP_PROJECT"),
+        subscription=subscription,
+        max_messages=10,
+        ack_messages=True
+    )
+
+
+def check_for_files(message):
+    return ShortCircuitOperator(
+        task_id="check_for_files",
+        python_callable=lambda x: len(x) > 0,
+        op_args=[message]
+    )
 
 
 @task
-def copy_products_to_snowflake(**context):
-    files = _parse_files(context, 'products')
+def copy_products_to_snowflake(messages):
+    files = _parse_files(messages, 'products')
 
     hook = SnowflakeHook(snowflake_conn_id='snowflake_default')
     return hook.run(
@@ -89,6 +113,7 @@ def copy_orders_to_snowflake(**context):
         """
     )
 
+
 @task
 def copy_order_items_to_snowflake(**context):
     files = _parse_files(context, 'order_items')
@@ -114,6 +139,7 @@ def copy_order_items_to_snowflake(**context):
         """
     )
 
+
 def dbt_transform(tags):
     logging.info(f'Running dbt transform for {tags}...')
 
@@ -133,8 +159,9 @@ def dbt_transform(tags):
             profile_name='ecom_dbt',
             profiles_yml_filepath=os.path.join(project_path, "profiles.yml"),
             target_name='dev'
-        ),
-        execution_config=ExecutionConfig(
-            dbt_executable_path=(os.path.join(root_path, '.venv/bin/dbt'))
         )
+        # If separate venv is needed for dbt
+        # execution_config=ExecutionConfig(
+        #     dbt_executable_path=(os.path.join(root_path, '.venv/bin/dbt'))
+        # )
     )

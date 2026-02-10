@@ -1,0 +1,7 @@
+services:
+  scheduler:
+    volumes:
+      - /home/ravi/projects/public_repo/snowflake-dbt-quality-ref/ecom_dbt:/usr/local/airflow/ecom_dbt:rw
+  dag-processor:
+    volumes:
+      - /home/ravi/projects/public_repo/snowflake-dbt-quality-ref/ecom_dbt:/usr/local/airflow/ecom_dbt:rw
