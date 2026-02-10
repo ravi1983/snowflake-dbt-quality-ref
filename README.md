@@ -23,7 +23,7 @@ The architecture focuses on high data quality, automated documentation, and nati
 The Airflow DAGs are broken down by functional area. Below are the visual representations of the task dependencies:
 
 ### Dimension Table Pipeline
-![Dimenstion pipeline](images/dimension-graph.png)
+![Dimension pipeline](images/dimension-graph.png)
 * Both `users_dim` and `products_dim` are generated using similar pipelines.
 ### Fact Table Pipeline
 ![Fact pipeline](images/fact-graph.png)
