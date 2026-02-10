@@ -1,0 +1,35 @@
+models:
+  - name: top_users_items_by_tier
+    description: "Returns all line items for the top 5 spending users within each tier."
+    columns:
+      - name: USER_ID
+        description: "Unique identifier for the customer."
+        tests:
+          - not_null
+
+      - name: ORDER_ID
+        description: "Identifier for the specific order."
+        tests:
+          - not_null
+
+      - name: RANKED
+        description: "The spending rank of the user within their tier (1-5)."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 1
+                max_value: 5
+          - not_null
+
+      - name: TIER
+        description: "The customer loyalty tier (e.g., Gold, Silver)."
+        tests:
+          - accepted_values:
+              values: ['GOLD', 'SILVER', 'BRONZE', 'NEW MEMBER']
+
+      - name: PRODUCT_ID
+        description: "The product purchased in this specific order line item."
+        tests:
+          - relationships:
+              to: ref('products_dim')
+              field: PRODUCT_ID

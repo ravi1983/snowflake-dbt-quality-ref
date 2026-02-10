@@ -1,0 +1,34 @@
+models:
+  - name: time_between_orders_per_user
+    description: "Calculates the time elapsed between subsequent orders for each user."
+    columns:
+      - name: USER_ID
+        description: "Unique identifier for the customer."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('users_dim')
+              field: USER_ID
+
+      - name: ORDER_ID
+        description: "Identifier for the order; primary key for this model."
+        tests:
+          - not_null
+          - unique
+
+      - name: DAYS_BETWEEN_ORDERS
+        description: "Number of days between this order and the next one. Returns 0 for the last order."
+        tests:
+          - dbt_expectations.expect_column_min_to_be_between:
+              arguments:
+                min_value: 0
+          - dbt_expectations.expect_column_values_to_not_be_null:
+              arguments:
+                row_condition: "NEXT_ORDER_DATE is not null"
+
+      - name: NEXT_ORDER_DATE
+        description: "The date of the user's subsequent order."
+        tests:
+          - dbt_expectations.expect_column_values_to_not_be_null:
+              arguments:
+                row_condition: "DAYS_BETWEEN_ORDERS > 0"

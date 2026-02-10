@@ -7,7 +7,13 @@
 }}
 WITH ORDER_ITEMS AS (
     SELECT
-        *
+        ORDER_ITEM_ID,
+        ORDER_ID,
+        PRODUCT_ID,
+        USER_ID,
+        QUANTITY,
+        ITEM_PRICE,
+        LOADED_AT
     FROM {{ source('ecom', 'order_items') }}
     {% if is_incremental() %}
     WHERE LOADED_AT > (SELECT MAX(LOADED_AT) FROM {{ this }})

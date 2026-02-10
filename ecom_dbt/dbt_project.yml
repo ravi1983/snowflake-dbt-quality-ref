@@ -26,9 +26,6 @@ clean-targets:         # directories to be removed by `dbt clean`
 # Configuring models
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
 
-# In this example config, we tell dbt to build all models in the example/
-# directory as views. These settings can be overridden in the individual model
-# files using the `{{ config(...) }}` macro.
 models:
   ecom_dbt:
     +materialized: view
@@ -38,3 +35,5 @@ models:
     reporting:
       +schema: reporting
       +materialized: incremental
+    mart:
+      +schema: mart
