@@ -9,7 +9,7 @@ import tasks.ecom_tasks as et
     start_date=datetime(2025, 1, 1),
     max_active_runs=1,
     catchup=False,
-    schedule='*/5 * * * *' # Every 5 minutes
+    schedule='*/10 * * * *'
 )
 def products_ingestion_pipeline():
     pull_task = et.poll_for_messages(os.environ.get("GCS_PRODUCT_SUBSCRIPTION"))

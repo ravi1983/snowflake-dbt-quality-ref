@@ -66,8 +66,8 @@ def copy_products_to_snowflake(messages):
 
 
 @task
-def copy_users_to_snowflake(**context):
-    files = _parse_files(context, 'users')
+def copy_users_to_snowflake(messages):
+    files = _parse_files(messages, 'users')
 
     hook = SnowflakeHook(snowflake_conn_id='snowflake_default')
     return hook.run(
@@ -91,8 +91,8 @@ def copy_users_to_snowflake(**context):
 
 
 @task
-def copy_orders_to_snowflake(**context):
-    files = _parse_files(context, 'orders')
+def copy_orders_to_snowflake(messages):
+    files = _parse_files(messages, 'orders')
 
     hook = SnowflakeHook(snowflake_conn_id='snowflake_default')
     return hook.run(
@@ -115,8 +115,8 @@ def copy_orders_to_snowflake(**context):
 
 
 @task
-def copy_order_items_to_snowflake(**context):
-    files = _parse_files(context, 'order_items')
+def copy_order_items_to_snowflake(messages):
+    files = _parse_files(messages, 'order_items')
 
     hook = SnowflakeHook(snowflake_conn_id='snowflake_default')
     return hook.run(
